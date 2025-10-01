@@ -1,0 +1,153 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'maven3'     
+        jdk 'jdk17'       
+    }
+
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git branch: 'develop', url: 'https://github.com/mdmokchhedulislam/microservices-project.git'
+            }
+        }
+
+        // ===== USERSERVICE =====
+        stage('User Service - Build') {
+            steps {
+                dir('userservice') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('User Service - Security Scan') {
+            steps {
+                dir('userservice') {
+                    sh 'gitleaks detect --source . --exit-code 1'
+                    sh 'trivy fs --format table -o fs-report-user.html .'
+                }
+            }
+        }
+
+        stage('User Service - SonarQube Analysis') {
+            steps {
+                dir('userservice') {
+                    withSonarQubeEnv('sonar') {
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=userservice \
+                            -Dsonar.projectKey=userservice '''
+                    }
+                }
+            }
+        }
+
+        stage('User Service - Build & Push Docker Image') {
+            steps {
+                script {
+                    dir('userservice') {
+                        withDockerRegistry(credentialsId: 'docker-cred') {
+                            sh 'docker build -t mokchhedul/userservice:latest .'
+                            sh 'trivy image --format table -o user-image-report.html mokchhedul/userservice:latest'
+                            sh 'docker push mokchhedul/userservice:latest'
+                        }
+                    }
+                }
+            }
+        }
+
+        // ===== ACTIVITYSERVICE =====
+        stage('Activity Service - Build') {
+            steps {
+                dir('activityservice') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Activity Service - Security Scan') {
+            steps {
+                dir('activityservice') {
+                    sh 'gitleaks detect --source . --exit-code 1'
+                    sh 'trivy fs --format table -o fs-report-activity.html .'
+                }
+            }
+        }
+
+        stage('Activity Service - Build & Push Docker Image') {
+            steps {
+                script {
+                    dir('activityservice') {
+                        withDockerRegistry(credentialsId: 'docker-cred') {
+                            sh 'docker build -t mokchhedul/activityservice:latest .'
+                            sh 'trivy image --format table -o activity-image-report.html mokchhedul/activityservice:latest'
+                            sh 'docker push mokchhedul/activityservice:latest'
+                        }
+                    }
+                }
+            }
+        }
+
+        // ===== AI SERVICE =====
+        stage('AI Service - Build & Push Docker Image') {
+            steps {
+                script {
+                    dir('aiservice') {
+                        sh 'mvn clean package -DskipTests'
+                        withDockerRegistry(credentialsId: 'docker-cred') {
+                            sh 'docker build -t mokchhedul/aiservice:latest .'
+                            sh 'trivy image --format table -o ai-image-report.html mokchhedul/aiservice:latest'
+                            sh 'docker push mokchhedul/aiservice:latest'
+                        }
+                    }
+                }
+            }
+        }
+
+        // ===== API GATEWAY =====
+        stage('API Gateway - Build & Push Docker Image') {
+            steps {
+                script {
+                    dir('gateway') {
+                        sh 'mvn clean package -DskipTests'
+                        withDockerRegistry(credentialsId: 'docker-cred') {
+                            sh 'docker build -t mokchhedul/gateway:latest .'
+                            sh 'trivy image --format table -o gateway-image-report.html mokchhedul/gateway:latest'
+                            sh 'docker push mokchhedul/gateway:latest'
+                        }
+                    }
+                }
+            }
+        }
+
+        // ===== EUREKA SERVER =====
+        stage('Eureka Server - Build & Push Docker Image') {
+            steps {
+                script {
+                    dir('eureka') {
+                        sh 'mvn clean package -DskipTests'
+                        withDockerRegistry(credentialsId: 'docker-cred') {
+                            sh 'docker build -t mokchhedul/eureka:latest .'
+                            sh 'trivy image --format table -o eureka-image-report.html mokchhedul/eureka:latest'
+                            sh 'docker push mokchhedul/eureka:latest'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "All microservices built, scanned, and pushed to DockerHub successfully!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
+}
