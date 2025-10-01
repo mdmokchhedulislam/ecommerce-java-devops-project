@@ -19,10 +19,10 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 # Copy the built JAR from build stage
-COPY --from=build /app/target/apigateway-0.0.1-SNAPSHOT.jar apigateway.jar
+COPY --from=build target/gateway-0.0.1-SNAPSHOT.jar gateway.jar
 
 # Expose the port
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["java","-jar","apigateway.jar"]
+ENTRYPOINT ["java","-jar","gateway.jar"]
