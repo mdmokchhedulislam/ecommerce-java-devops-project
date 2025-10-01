@@ -79,6 +79,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+<<<<<<< HEAD
     <build>
     <plugins>
         <!-- Compiler Plugin for Lombok -->
@@ -112,5 +113,36 @@
     </plugins>
 </build>
 
+=======
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>com.fitness.userservice.UserServiceApplication</mainClass>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+>>>>>>> fb5fa60de9e7dc66228980f67f91bf17fbaa5183
 
 </project>
