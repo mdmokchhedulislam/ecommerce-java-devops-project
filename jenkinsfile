@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'develop', url: 'https://github.com/mdmokchhedulislam/microservices-project.git'
+                git branch: 'main', url: 'https://github.com/mdmokchhedulislam/java-microservice-devops-project.git'
             }
         }
 
