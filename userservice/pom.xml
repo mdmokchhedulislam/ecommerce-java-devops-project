@@ -101,7 +101,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
             <configuration>
-                <mainClass>com.fitness.userservice.UserServiceApplication</mainClass>
+                <mainClass>com.fitness.userservice.UserserviceApplication</mainClass>
                 <excludes>
                     <exclude>
                         <groupId>org.projectlombok</groupId>
