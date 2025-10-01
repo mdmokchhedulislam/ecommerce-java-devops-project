@@ -1,0 +1,64 @@
+version: "3.9"
+services:
+  config-server:
+    build: ./configserver
+    container_name: config-server
+    ports:
+      - "8888:8888"
+
+  eureka-server:
+    build: ./eurekaserver
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    build: ./apigateway
+    container_name: api-gateway
+    environment:
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - config-server
+      - eureka-server
+      - userservice
+      - activity-service
+      - ai-service
+    ports:
+      - "8080:8080"
+
+  userservice:
+    build: ./userservice
+    container_name: user-service
+    environment:
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - config-server
+      - eureka-server
+    ports:
+      - "8081:8081"
+
+  activity-service:
+    build: ./activityservice
+    container_name: activity-service
+    environment:
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - config-server
+      - eureka-server
+    ports:
+      - "8082:8082"
+
+  ai-service:
+    build: ./aiservice
+    container_name: ai-service
+    environment:
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - config-server
+      - eureka-server
+    ports:
+      - "8083:8083"
