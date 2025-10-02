@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: mokchhedul/config-server
+  repository: mokchhedul/configserver
   tag: latest
   pullPolicy: IfNotPresent
 

@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: mokchhedul/eureka-server
+  repository: mokchhedul/eureka
   tag: latest
   pullPolicy: IfNotPresent
 
