@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: mokchhedul/frontend
+  repository: mokchhedul/userservice
   tag: latest
   pullPolicy: IfNotPresent
 
