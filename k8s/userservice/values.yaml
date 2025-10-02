@@ -1,23 +1,30 @@
 replicaCount: 2
 
 image:
-  repository: mokchhedul/userservice
+  repository: myrepo/myapp
   tag: latest
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
-  port: 8081
-
-database:
-  url: jdbc:mysql://mysql-service:3306/fitness_user_db
-  username: postgres
-  password: admin@123
+  port: 8080
 
 resources:
   limits:
-    cpu: 500m
-    memory: 512Mi
+    cpu: "500m"
+    memory: "512Mi"
   requests:
-    cpu: 250m
-    memory: 256Mi
+    cpu: "250m"
+    memory: "256Mi"
+
+app:
+  name: fitnes
+
+db:
+  url: jdbc:mysql://db:3306/usersdb
+  username: root
+  password: root
+  name: fitness-data
+
+autoscaler:
+  maxReplicas: 5
+  cpuPercentage: 60
