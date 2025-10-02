@@ -1,9 +1,9 @@
 pipeline {
     agent any
-    
+
     tools {
-        maven 'maven3'     
-        jdk 'jdk17'       
+        maven 'maven3'
+        jdk 'jdk17'
     }
 
     environment {
@@ -17,8 +17,54 @@ pipeline {
             }
         }
 
+        // ===== CONFIGSERVER =====
+        stage('configserver - Build') {
+            steps {
+                dir('configserver') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('configserver - Security Scan') {
+            steps {
+                dir('configserver') {
+                    sh 'gitleaks detect --source . --exit-code 1'
+                    sh 'trivy fs --format table -o fs-report-config.html .'
+                }
+            }
+        }
+
+        stage('configserver - SonarQube Analysis') {
+            steps {
+                dir('configserver') {
+                    sh 'mvn clean compile -DskipTests'
+                    withSonarQubeEnv('sonar') {
+                        sh """$SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=configserver \
+                            -Dsonar.projectKey=configserver \
+                            -Dsonar.java.binaries=target/classes"""
+                    }
+                }
+            }
+        }
+
+        stage('Build-Tag & Push configserver Docker Image') {
+            steps {
+                script {
+                    dir('configserver') {
+                        withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
+                            sh 'docker build -t mokchhedul/configserver:latest .'
+                            sh 'trivy image --format table -o configserver-image-report.html mokchhedul/configserver:latest'
+                            sh 'docker push mokchhedul/configserver:latest'
+                        }
+                    }
+                }
+            }
+        }
+
         // ===== USERSERVICE =====
-        stage('User Service - Build') {
+        stage('userservice - Build') {
             steps {
                 dir('userservice') {
                     sh 'mvn clean package -DskipTests'
@@ -26,7 +72,7 @@ pipeline {
             }
         }
 
-        stage('User Service - Security Scan') {
+        stage('userservice - Security Scan') {
             steps {
                 dir('userservice') {
                     sh 'gitleaks detect --source . --exit-code 1'
@@ -35,25 +81,27 @@ pipeline {
             }
         }
 
-        stage('User Service - SonarQube Analysis') {
+        stage('userservice - SonarQube Analysis') {
             steps {
                 dir('userservice') {
+                    sh 'mvn clean compile -DskipTests'
                     withSonarQubeEnv('sonar') {
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                        sh """$SCANNER_HOME/bin/sonar-scanner \
                             -Dsonar.projectName=userservice \
-                            -Dsonar.projectKey=userservice '''
+                            -Dsonar.projectKey=userservice \
+                            -Dsonar.java.binaries=target/classes"""
                     }
                 }
             }
         }
 
-        stage('User Service - Build & Push Docker Image') {
+        stage('Build-Tag & Push userservice Docker Image') {
             steps {
                 script {
                     dir('userservice') {
-                        withDockerRegistry(credentialsId: 'docker-cred') {
+                        withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
                             sh 'docker build -t mokchhedul/userservice:latest .'
-                            sh 'trivy image --format table -o user-image-report.html mokchhedul/userservice:latest'
+                            sh 'trivy image --format table -o userservice-image-report.html mokchhedul/userservice:latest'
                             sh 'docker push mokchhedul/userservice:latest'
                         }
                     }
@@ -62,7 +110,7 @@ pipeline {
         }
 
         // ===== ACTIVITYSERVICE =====
-        stage('Activity Service - Build') {
+        stage('activityservice - Build') {
             steps {
                 dir('activityservice') {
                     sh 'mvn clean package -DskipTests'
@@ -70,7 +118,7 @@ pipeline {
             }
         }
 
-        stage('Activity Service - Security Scan') {
+        stage('activityservice - Security Scan') {
             steps {
                 dir('activityservice') {
                     sh 'gitleaks detect --source . --exit-code 1'
@@ -79,13 +127,27 @@ pipeline {
             }
         }
 
-        stage('Activity Service - Build & Push Docker Image') {
+        stage('activityservice - SonarQube Analysis') {
+            steps {
+                dir('activityservice') {
+                    sh 'mvn clean compile -DskipTests'
+                    withSonarQubeEnv('sonar') {
+                        sh """$SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=activityservice \
+                            -Dsonar.projectKey=activityservice \
+                            -Dsonar.java.binaries=target/classes"""
+                    }
+                }
+            }
+        }
+
+        stage('Build-Tag & Push activityservice Docker Image') {
             steps {
                 script {
                     dir('activityservice') {
-                        withDockerRegistry(credentialsId: 'docker-cred') {
+                        withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
                             sh 'docker build -t mokchhedul/activityservice:latest .'
-                            sh 'trivy image --format table -o activity-image-report.html mokchhedul/activityservice:latest'
+                            sh 'trivy image --format table -o activityservice-image-report.html mokchhedul/activityservice:latest'
                             sh 'docker push mokchhedul/activityservice:latest'
                         }
                     }
@@ -93,15 +155,45 @@ pipeline {
             }
         }
 
-        // ===== AI SERVICE =====
-        stage('AI Service - Build & Push Docker Image') {
+        // ===== AISERVICE =====
+        stage('aiservice - Build') {
+            steps {
+                dir('aiservice') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('aiservice - Security Scan') {
+            steps {
+                dir('aiservice') {
+                    sh 'gitleaks detect --source . --exit-code 1'
+                    sh 'trivy fs --format table -o fs-report-aiservice.html .'
+                }
+            }
+        }
+
+        stage('aiservice - SonarQube Analysis') {
+            steps {
+                dir('aiservice') {
+                    sh 'mvn clean compile -DskipTests'
+                    withSonarQubeEnv('sonar') {
+                        sh """$SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=aiservice \
+                            -Dsonar.projectKey=aiservice \
+                            -Dsonar.java.binaries=target/classes"""
+                    }
+                }
+            }
+        }
+
+        stage('Build-Tag & Push aiservice Docker Image') {
             steps {
                 script {
                     dir('aiservice') {
-                        sh 'mvn clean package -DskipTests'
-                        withDockerRegistry(credentialsId: 'docker-cred') {
+                        withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
                             sh 'docker build -t mokchhedul/aiservice:latest .'
-                            sh 'trivy image --format table -o ai-image-report.html mokchhedul/aiservice:latest'
+                            sh 'trivy image --format table -o aiservice-image-report.html mokchhedul/aiservice:latest'
                             sh 'docker push mokchhedul/aiservice:latest'
                         }
                     }
@@ -109,13 +201,43 @@ pipeline {
             }
         }
 
-        // ===== API GATEWAY =====
-        stage('API Gateway - Build & Push Docker Image') {
+        // ===== GATEWAY =====
+        stage('gateway - Build') {
+            steps {
+                dir('gateway') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('gateway - Security Scan') {
+            steps {
+                dir('gateway') {
+                    sh 'gitleaks detect --source . --exit-code 1'
+                    sh 'trivy fs --format table -o fs-report-gateway.html .'
+                }
+            }
+        }
+
+        stage('gateway - SonarQube Analysis') {
+            steps {
+                dir('gateway') {
+                    sh 'mvn clean compile -DskipTests'
+                    withSonarQubeEnv('sonar') {
+                        sh """$SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=gateway \
+                            -Dsonar.projectKey=gateway \
+                            -Dsonar.java.binaries=target/classes"""
+                    }
+                }
+            }
+        }
+
+        stage('Build-Tag & Push gateway Docker Image') {
             steps {
                 script {
                     dir('gateway') {
-                        sh 'mvn clean package -DskipTests'
-                        withDockerRegistry(credentialsId: 'docker-cred') {
+                        withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
                             sh 'docker build -t mokchhedul/gateway:latest .'
                             sh 'trivy image --format table -o gateway-image-report.html mokchhedul/gateway:latest'
                             sh 'docker push mokchhedul/gateway:latest'
@@ -125,13 +247,43 @@ pipeline {
             }
         }
 
-        // ===== EUREKA SERVER =====
-        stage('Eureka Server - Build & Push Docker Image') {
+        // ===== EUREKA =====
+        stage('eureka - Build') {
+            steps {
+                dir('eureka') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('eureka - Security Scan') {
+            steps {
+                dir('eureka') {
+                    sh 'gitleaks detect --source . --exit-code 1'
+                    sh 'trivy fs --format table -o fs-report-eureka.html .'
+                }
+            }
+        }
+
+        stage('eureka - SonarQube Analysis') {
+            steps {
+                dir('eureka') {
+                    sh 'mvn clean compile -DskipTests'
+                    withSonarQubeEnv('sonar') {
+                        sh """$SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=eureka \
+                            -Dsonar.projectKey=eureka \
+                            -Dsonar.java.binaries=target/classes"""
+                    }
+                }
+            }
+        }
+
+        stage('Build-Tag & Push eureka Docker Image') {
             steps {
                 script {
                     dir('eureka') {
-                        sh 'mvn clean package -DskipTests'
-                        withDockerRegistry(credentialsId: 'docker-cred') {
+                        withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
                             sh 'docker build -t mokchhedul/eureka:latest .'
                             sh 'trivy image --format table -o eureka-image-report.html mokchhedul/eureka:latest'
                             sh 'docker push mokchhedul/eureka:latest'
@@ -140,6 +292,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
