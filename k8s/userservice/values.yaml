@@ -1,12 +1,13 @@
 replicaCount: 2
 
 image:
-  repository: myrepo/myapp
+  repository: mokchhedul/frontend
   tag: latest
   pullPolicy: IfNotPresent
 
 service:
-  port: 8080
+  port: 8081
+  type: ClusterIP
 
 resources:
   limits:
@@ -23,7 +24,8 @@ db:
   url: jdbc:mysql://db:3306/usersdb
   username: root
   password: root
-  name: fitness-data
+  name: fitness
+  port: 3306
 
 autoscaler:
   maxReplicas: 5
