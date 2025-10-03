@@ -1,12 +1,9 @@
-# spring:
-#   application:
-#     name: user-service
-#   config:
-#     import: optional:configserver:http://localhost:8888
-
 spring:
   application:
-    name: ${APP_NAME}
+    name: user-service
+
+  config:
+    import: "optional:configserver:http://config-server:8888"
 
   datasource:
     url: ${DB_URL}
@@ -20,18 +17,9 @@ spring:
     show-sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
-# spring:
-#   application:
-#     name: user-service
-
-#   datasource:
-#     url: jdbc:mysql://db:3306/usersdb
-#     username: root
-#     password: root
-#     driver-class-name: com.mysql.cj.jdbc.Driver
-
-#   jpa:
-#     hibernate:
-#       ddl-auto: update
-#     show-sql: true
-#     database-platform: org.hibernate.dialect.MySQL8Dialect
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
