@@ -15,11 +15,6 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
 
-
-
-spring:
-  application:
-    name: user-service
 server:
   port: 8080
 
@@ -30,5 +25,5 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   instance:
-    lease-renewal-interval-in-seconds: 5    # heartbeat প্রতি 5 সেকেন্ডে
-    lease-expiration-duration-in-seconds: 15 # timeout 15 সেকেন্ড
+    lease-renewal-interval-in-seconds: 5   
+    lease-expiration-duration-in-seconds: 15 
