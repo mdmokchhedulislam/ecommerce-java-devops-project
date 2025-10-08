@@ -13,6 +13,18 @@ services:
     networks:
       - fitness-network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - fitness-network
+
   config-server:
     build: ./configserver
     container_name: config-server
@@ -33,14 +45,11 @@ services:
     build: ./gateway
     container_name: gateway
     environment:
-      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka:8761/eureka/"
     depends_on:
       - config-server
       - eureka
-      - userservice
-      - activity-service
-      - ai-service
     ports:
       - "8080:8080"
     networks:
@@ -50,46 +59,18 @@ services:
     build: ./userservice
     container_name: user-service
     environment:
-      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/userdb
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka:8761/eureka/"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql-db:3306/userdb"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "root"
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: "com.mysql.cj.jdbc.Driver"
     depends_on:
       - config-server
       - eureka
       - mysql
     ports:
       - "8081:8081"
-    networks:
-      - fitness-network
-
-  activity-service:
-    build: ./activityservice
-    container_name: activity-service
-    environment:
-      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
-    depends_on:
-      - config-server
-      - eureka
-    ports:
-      - "8082:8082"
-    networks:
-      - fitness-network
-
-  ai-service:
-    build: ./aiservice
-    container_name: ai-service
-    environment:
-      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
-    depends_on:
-      - config-server
-      - eureka
-    ports:
-      - "8083:8083"
     networks:
       - fitness-network
 
