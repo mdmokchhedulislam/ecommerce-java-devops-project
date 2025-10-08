@@ -1,11 +1,13 @@
 spring:
   application:
-    name: eureka
+    name: eureka-server
 
 server:
   port: 8761
 
 eureka:
   client:
-    register-with-eureka: false
-    fetch-registry: false
+    register-with-eureka: false  # Eureka server নিজেকে register করবে না
+    fetch-registry: false         # নিজেই registry fetch করবে না
+  instance:
+    hostname: localhost           # host name, UI তে দেখানোর জন্য
