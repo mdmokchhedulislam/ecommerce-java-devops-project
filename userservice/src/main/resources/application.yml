@@ -2,28 +2,31 @@ spring:
   application:
     name: user-service
 
+  cloud:
+    config:
+      enabled: false   # Config server পুরোপুরি disable
+
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://localhost:5432/fitnessdb
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-
-
-server:
-  port: 8080
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 eureka:
   client:
-    serviceUrl:
-      defaultZone: http://eureka-server:8761/eureka/
+    service-url:
+      defaultZone: http://localhost:8761/eureka
     register-with-eureka: true
     fetch-registry: true
+    
   instance:
-    lease-renewal-interval-in-seconds: 5   
-    lease-expiration-duration-in-seconds: 15 
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10

@@ -10,4 +10,4 @@ eureka:
     register-with-eureka: false  # Eureka server নিজেকে register করবে না
     fetch-registry: false         # নিজেই registry fetch করবে না
   instance:
-    hostname: localhost           # host name, UI তে দেখানোর জন্য
+    hostname: localhost           # UI তে host name দেখানোর জন্য
